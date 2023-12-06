@@ -27,3 +27,23 @@ textarea,
 select {
   @apply block w-full rounded-sm border border-gray-300 shadow-sm p-2 bg-gray-100 text-gray-900;
 }
+
+.section {
+  @apply flex justify-center min-h-screen font-sans;
+}
+
+h1 {
+  @apply text-4xl font-semibold my-5;
+}
+
+h3 {
+  @apply text-2xl font-semibold my-4;
+}
+
+label {
+  @apply text-gray-600 mx-1;
+}
+
+.errorMessage {
+  @apply text-red-500 text-sm mt-1;
+}

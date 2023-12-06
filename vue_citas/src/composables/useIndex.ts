@@ -1,42 +1,31 @@
-
-// @ts-nocheck
+import { ref, onMounted } from 'vue';
 import { Calendar } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import timeGridPlugin from '@fullcalendar/timegrid';
 
-export default {
-  name: 'MyCalendar',
-  data() {
-    return {
-      calendar: null as Calendar | null,
-      shift: true,
+export default () => {
+    const calendar = ref<Calendar | null>(null);
+    const shift = ref(true);
+
+    const toggleShift = () => {
+      shift.value = !shift.value;
     };
-  },
-  mounted() {
-    this.initCalendar();
-  },
-  methods: {
-    toggleShift() {
-      this.shift = !this.shift;
-    },
-    valueShift(): string {
-      return this.shift ? 'T08:00:00' : 'T13:00:00';
-    },
-    ControlEvents(info: { view: { calendar: Calendar }; date: Date; dateStr: string }) {
+
+    const valueShift = () => (shift.value ? 'T08:00:00' : 'T13:00:00');
+
+    const nameShift = () => (shift.value ? 'Turno Mañana ' : 'Turno Tarde ');
+
+    const controlEvents = (info: any) => {
+      const nameShiftValue = nameShift();
       const calendarApi = info.view.calendar;
       const selectedDate = info.date;
-      const name = prompt('Por favor Ingrese Su Nombre');
-
-      if (!name) {
-        alert('Cancelado');
-        return;
-      }
-
       calendarApi.unselect(); // clear date selection
+
       const eventsForDate = calendarApi.getEvents().filter((event) => {
-        const timestamp = new Date(info.dateStr + this.valueShift());
-        const eventDate = event.start as Date;
+        const timestamp = new Date(info.dateStr + valueShift());
+        const eventDate = event.start;
+
         // Compara solo el año, mes y día
         return (
           eventDate.getFullYear() === selectedDate.getFullYear() &&
@@ -46,42 +35,69 @@ export default {
         );
       });
 
+      const mesActual = new Date().getMonth();
       const aux = eventsForDate.length;
       const titlesForDate = eventsForDate.map((event) => event.title);
 
-      console.log(aux);
+      if (aux < 2) {
+        const name = prompt('Por favor Ingrese Su Nombre');
+        const realTitle = nameShiftValue + name;
 
-      if (name && aux < 2 && !titlesForDate.includes(name)) {
-        calendarApi.addEvent({
-          id: info.dateStr,
-          title: name,
-          start: info.dateStr + this.valueShift(),
-          end: info.dateStr,
-        });
-      } else if (titlesForDate.includes(name)) {
-        alert('Cita Ya Existe');
+        if (name && !titlesForDate.includes(realTitle) && selectedDate.getMonth() === mesActual) {
+          console.log(info.dateStr);
+          calendarApi.addEvent({
+            id: info.dateStr,
+            title: realTitle,
+            start: info.dateStr + valueShift(),
+            end: info.dateStr,
+          });
+        } else if (titlesForDate.includes(realTitle)) {
+          alert('Cita Ya Existe');
+        } else {
+          alert('Cancelado');
+        }
       } else {
         alert('Limite Alcanzado');
       }
-    },
-    initCalendar() {
-      const calendarEl = this.$refs.calendar as HTMLElement;
+    };
 
-      this.calendar = new Calendar(calendarEl, {
-        plugins: [dayGridPlugin, interactionPlugin, timeGridPlugin],
-        initialView: 'dayGridMonth' as 'dayGridMonth',
-        locale: 'es',
-        weekends: false,
-        buttonText: {
-          today: 'Mes Actual',
-        },
-        selectable: true,
-        dateClick: (info) => {
-          this.ControlEvents(info);
-        },
-      });
+    const initCalendar = () => {
+      const calendarEl = document.getElementById('calendar');
 
-      this.calendar.render();
-    },
-  },
+      if (calendarEl) {
+        calendar.value = new Calendar(calendarEl, {
+          plugins: [dayGridPlugin, interactionPlugin, timeGridPlugin],
+          initialView: 'dayGridMonth',
+          locale: 'es',
+          weekends: false,
+          customButtons: {
+            myCustomButton: {
+              text: 'Cambiar Turno',
+              click: toggleShift,
+            },
+          },
+          headerToolbar: {
+            start: 'prev,next today',
+            center: 'title',
+            end: 'myCustomButton',
+          },
+          buttonText: {
+            today: 'Mes Actual',
+          },
+          selectable: true,
+          dateClick: controlEvents,
+        });
+
+        calendar.value.render();
+      }
+    };
+
+    onMounted(initCalendar);
+
+    return {
+      calendar,
+      toggleShift,
+      controlEvents,
+    };
+  
 };

@@ -5,7 +5,7 @@ import { Calendar } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import esLocale from '@fullcalendar/core/locales/es';
+
 export default defineComponent({
   name: 'MyCalendar',
   data() {
@@ -22,16 +22,15 @@ export default defineComponent({
       this.shift=!this.shift
     },
     valueShift(){
-      if(this.shift){
-        return 'T08:00:00'
-      }else{
-        return 'T13:00:00'
-      }
+      return this.shift ? 'T08:00:00' : 'T13:00:00';
+    },
+    nameShift(){
+      return this.shift ? 'Turno Mañana ' : 'Turno Tarde ';
     },
     ControlEvents(info: any) {
+      let nameShift=this.nameShift()
       let calendarApi = info.view.calendar
       let selectedDate=info.date
-      let name = prompt('Por favor Ingrese Su Nombre')
       calendarApi.unselect() // clear date selection
       const eventsForDate = calendarApi.getEvents().filter(event => {
         var timestamp = new Date(info.dateStr + this.valueShift());
@@ -48,19 +47,24 @@ export default defineComponent({
       mesActual=mesActual.getMonth()
       let aux= eventsForDate.length
       const titlesForDate = eventsForDate.map(event => event.title);
-      if ((name)&& aux<2 && !titlesForDate.includes(name) && (selectedDate.getMonth()=== mesActual)){
-        calendarApi.addEvent({
-          id: info.dateStr,
-          title: name,
-          start: info.dateStr+this.valueShift(),
-          end: info.dateStr
-        })
-      }else if(titlesForDate.includes(name)){
-        alert("Cita Ya Existe")
-      }else if(!name){
-        alert("Cancelado")
+      if (aux<2){
+        let name = prompt('Por favor Ingrese Su Nombre')
+        let realTitle= nameShift+name
+        if ((name) && !titlesForDate.includes(realTitle) && (selectedDate.getMonth()=== mesActual)){
+          console.log(info.dateStr)
+          calendarApi.addEvent({
+            id: info.dateStr,
+            title: realTitle,
+            start: info.dateStr+this.valueShift(),
+            end: info.dateStr
+          })
+        }else if(titlesForDate.includes(realTitle)){
+          alert("Cita Ya Existe")
+        }else{
+          alert("Cancelado")
+        }
       }else{
-        alert("Limite Alcanzado")
+          alert("Limite Alcanzado")
       }
     },
     initCalendar() {
@@ -71,6 +75,19 @@ export default defineComponent({
         initialView: 'dayGridMonth',
         locale: 'es',
         weekends: false,
+        customButtons: {
+          myCustomButton: {
+            text: "Cambiar Turno",
+            click: ()=> {
+              this.toggleShift()
+            }
+          }
+        },
+        headerToolbar: {
+          start: 'prev,next today',
+          center: 'title',
+          end:'myCustomButton'
+        },
         buttonText:{
           today: 'Mes Actual',
         },
@@ -85,8 +102,11 @@ export default defineComponent({
 </script>
 <template>
   <div>
-    <div ref="calendar"></div>
-    <button v-if="shift" @click="toggleShift">Turno Mañana</button>
-    <button v-else @click="toggleShift">Turno Tarde</button>
+    <div class="flex justify-center">
+      <button v-if="shift" @click="toggleShift">Turno Mañana</button>
+      <button v-else @click="toggleShift">Turno Tarde</button>
+    </div>
+    <div ref="calendar" id="calendar"></div>
+    
   </div>
 </template>
