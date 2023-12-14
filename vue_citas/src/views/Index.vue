@@ -47,7 +47,7 @@ export default defineComponent({
       mesActual=mesActual.getMonth()
       let aux= eventsForDate.length
       const titlesForDate = eventsForDate.map(event => event.title);
-      if (aux<5){
+      if (aux<5){//5 is the limit of people for a given shift
         let name = prompt('Por favor Ingrese Su Nombre')
         let realTitle= nameShift+name
         if ((name) && !titlesForDate.includes(realTitle) && (selectedDate.getMonth()=== mesActual)){
@@ -62,7 +62,7 @@ export default defineComponent({
         }else if(titlesForDate.includes(realTitle)){
           alert("Cita Ya Existe")
         }else{
-          alert("Cancelado")
+          alert("Debe ingresar un nombre")
         }
       }else{
           alert("Limite Alcanzado")
@@ -76,7 +76,8 @@ export default defineComponent({
         initialView: 'dayGridMonth',
         locale: 'es',
         contentHeight:950,
-        weekends: false,
+        weekends: false,//Hide Weekends
+        // hiddenDays:[2,4],//Hide Tuesday and Thursday
         dayMaxEventRows: true,
         // eventLimitText:'Más',
         customButtons: {
