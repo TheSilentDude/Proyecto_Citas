@@ -47,11 +47,12 @@ export default defineComponent({
       mesActual=mesActual.getMonth()
       let aux= eventsForDate.length
       const titlesForDate = eventsForDate.map(event => event.title);
-      if (aux<2){
+      if (aux<5){
         let name = prompt('Por favor Ingrese Su Nombre')
         let realTitle= nameShift+name
         if ((name) && !titlesForDate.includes(realTitle) && (selectedDate.getMonth()=== mesActual)){
           console.log(info.dateStr)
+          console.log(info.date)
           calendarApi.addEvent({
             id: info.dateStr,
             title: realTitle,
@@ -74,7 +75,10 @@ export default defineComponent({
         plugins: [dayGridPlugin, interactionPlugin, timeGridPlugin],
         initialView: 'dayGridMonth',
         locale: 'es',
+        contentHeight:950,
         weekends: false,
+        dayMaxEventRows: true,
+        // eventLimitText:'Más',
         customButtons: {
           myCustomButton: {
             text: "Cambiar Turno",
